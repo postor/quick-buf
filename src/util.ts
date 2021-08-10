@@ -1,7 +1,7 @@
 export type BasicType = 'boolean' | 'number' | 'string' |
   'Double' | 'Float' | 'bigint' | 'undefined' | 'uint' |
   'BigInt64' | 'Int8' | 'Int16' | 'Int32' | 'Float32' |
-  'BigUint64' | 'UInt8' | 'UInt16' | 'UInt32' | 'Float64'
+  'BigUint64' | 'UInt8' | 'UInt16' | 'UInt32' | 'Float64' | 'float'
 
 export type MixType = BasicType | 'array' | 'object'
 
@@ -28,6 +28,7 @@ export const TypeValues = {
   Float: 17,
   bigint: 18,
   undefined: 19,
+  float: 20,
 }
 
 export const ValueTypes = []
@@ -91,6 +92,7 @@ export function concatBuf(arr: ArrayBuffer[]) {
   for (let buf of arr) {
     let t = new Uint8Array(buf)
     rtn.set(t, cur)
+    // console.log({cur})
     cur += t.length
   }
   return rtn.buffer

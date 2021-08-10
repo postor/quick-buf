@@ -1,9 +1,11 @@
 import { BitReader } from "./bits"
-import { Structure, StructureMeta } from "./Structure"
+// import { EncodeUints } from "./encode"
+import { Structure, StructureMeta, StructureMetaItem } from "./Structure"
 import { TypeClasses, TypeSizes, TypeValues, ValueTypes } from "./util"
 import { VUintReader } from "./VUint"
 
 const UTF8 = new TextDecoder()
+// let DecodeUints: number[] = []
 
 export function decode(buf: ArrayBuffer, structure?: Structure): any {
   // bitmask, type counts, string total bytes
@@ -25,8 +27,10 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
 
   // init readers
   let arrs = arrsCounts.map((x, i) => {
+    if (!x) return () => 0
     let size = TypeSizes[i] * x
-    let reader = buffReader(buf, TypeClasses[i], cur, x)
+    // console.log(`${TypeClasses[i]}`, { x, i, size, cur })
+    let reader = buffReader(buf.slice(cur, cur + size), TypeClasses[i])
     cur += size
     return reader
   })
@@ -40,21 +44,9 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
   return readData(struct)
 
   function readStructure(): Structure {
-    let data = readData(StructureMeta) as { name: string, type: number, parent: number }[]
+    let data = readData(StructureMeta) as StructureMetaItem[]
     // console.log(data)
-    let structs = data.map(({ name, type }) =>
-      new Structure(ValueTypes[type], name, type == TypeValues.object ? [] : undefined))
-    for (let i = 0; i < data.length; i++) {
-      let { parent } = data[i]
-      if (parent == i) continue
-      let s = structs[parent]
-      if (s.type == 'object') {
-        (s.contents as Structure[]).push(structs[i])
-      } else {
-        s.contents = structs[i]
-      }
-    }
-    return structs[0]
+    return Structure.restruct(data)
   }
 
   function readData(struct: Structure) {
@@ -65,7 +57,9 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
       case 'string': return arrs[TypeValues.string]()
       case 'number':
       case 'Double': return arrs[TypeValues.Float64]()
-      case 'Float': return arrs[TypeValues.Float32]()
+      case 'Float':
+      case 'float':
+        return arrs[TypeValues.Float32]()
       default: return arrs[TypeValues[struct.type]]()
     }
 
@@ -80,6 +74,8 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
 
     function readArray(struct: Structure): any {
       let arr = [], length = arrs[TypeValues.uint]() as number
+
+      // console.log(`arr.lenght=${length}`)
       for (let i = 0; i < length; i++) {
         arr.push(readData(struct))
       }
@@ -88,8 +84,17 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
   }
 
   function getUintReader() {
+    // console.log({ uintStartDecode: cur }, buf.slice(cur))
     let reader = new VUintReader(new Uint8Array(buf, cur))
-    return () => reader.read()
+    return () => {
+      let tmp = reader.read()
+      // DecodeUints.push(tmp)
+      // if (DecodeUints[DecodeUints.length - 1] != EncodeUints[DecodeUints.length - 1]) {
+      //   console.log(EncodeUints, DecodeUints, tmp, reader)
+      //   throw 'mismatch!'
+      // }
+      return tmp
+    }
   }
 
   function getStringReader() {
@@ -97,9 +102,13 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
     cur += stringTotalSize
     return () => {
       let length = arrs[TypeValues.uint]() as number
-      // console.log(`read string`, { length })
       if (!length) return ''
+      if (buf.byteLength < length + strOffset) {
+        throw `out of range`
+      }
       let rtn = UTF8.decode(new Uint8Array(buf, strOffset, length))
+
+      // console.log(`read string`, { length, rtn })
       strOffset += length
       return rtn
     }
@@ -113,7 +122,7 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
   }
 }
 
-function buffReader<T>(buf: ArrayBuffer, TypeClass: any, offset: number, length?: number) {
+function buffReader<T>(buf: ArrayBuffer, TypeClass: any, offset?: number, length?: number) {
   let i = 0, arr = new TypeClass(buf, offset, length)
   return () => arr[i++] as T
 }

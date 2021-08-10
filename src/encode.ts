@@ -4,7 +4,8 @@ import { concatBuf, TypeClasses, TypeSizes, TypeValues } from "./util"
 import { writeUint } from "./VUint"
 
 const UTF8 = new TextEncoder()
-
+// export const EncodeUints: number[] = []
+// let logs: string[] = []
 /**
  * 
  * @param data 
@@ -24,8 +25,8 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
     bitMask,
     ...TypeSizes.map((x, i) => arrs[i].length).filter(x => x),
     arrs[TypeValues.boolean].length,
-    arrs[TypeValues.string].reduce((p, n) => p + n.length, 0)
-  ].concat(arrs[TypeValues.UInt32] as [])
+    arrs[TypeValues.string].reduce((p, n) => p + n.length, 0) // string total bytes
+  ].concat(arrs[TypeValues.UInt32] as []) // [bitmask,...typecounts,...uint32s]
   // let decoder = new TextDecoder()
   // console.log(arrs[TypeValues.string].map(x=>decoder.decode(x)))
 
@@ -40,7 +41,10 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
       }
     }
     bufs.push(new Uint8Array(bits2bytes(arrs[TypeValues.boolean])).buffer)
+
     bufs = bufs.concat(arrs[TypeValues.string].map((x: Uint8Array) => x.buffer))
+    // console.log({ uintStart: concatBuf(bufs).byteLength }, arrs[TypeValues.uint],
+    //   arrs[TypeValues.uint].length, new Uint8Array(arrs[TypeValues.uint]).buffer)
     bufs.push(new Uint8Array(arrs[TypeValues.uint]).buffer)
 
     return concatBuf(bufs)
@@ -54,12 +58,26 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
       case 'string': return writeString(data)
       case 'number':
       case 'Double': return arrs[TypeValues.Float64].push(data)
-      case 'Float': return arrs[TypeValues.Float32].push(data)
-      default: return arrs[TypeValues[struct.type]].push(data)
+      case 'Float':
+      case 'float':
+        return arrs[TypeValues.Float32].push(data)
+      case 'uint':
+        return writeUint(data, arrs[TypeValues.uint])
+      default: {
+        if (undefined === arrs[TypeValues[struct.type]]) {
+          // console.log(logs)
+          throw `undefined arr ${struct.type}|${TypeValues[struct.type]}`
+        }
+        // logs.push(`writing ${struct.type}|${TypeValues[struct.type]}|${data}`)
+        // logs.length = 10
+        // console.log(struct, data)
+        return arrs[TypeValues[struct.type]].push(data)
+      }
     }
 
     function writeArray(arr: any[], itemStruct: Structure) {
       writeUint(arr.length, arrs[TypeValues.uint])
+      // console.log(`arr.lenght=${arr.length}`)
       for (let item of arr) {
         writeData(item, itemStruct)
       }
@@ -75,14 +93,17 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
     function writeString(str: string = '') {
       // console.log({ writeString: str })
       if (typeof str != 'string') str = '' + str
-      if (!str.length) return arrs[TypeValues.uint].push(0)
+
+      if (!str.length) return writeUint(0, arrs[TypeValues.uint])
       let bytes = UTF8.encode(str)
-      arrs[TypeValues.uint].push(bytes.length)
+      writeUint(bytes.length, arrs[TypeValues.uint])
       arrs[TypeValues.string].push(bytes)
     }
   }
 
   function writeStructure(struct: Structure) {
+    // console.log(`writeStructure`)
+    // throw 'writeStructure'
     let arr = flat(struct)
     // console.log(arr,arr.length)
     writeData(arr.map(([s, i]) => ({

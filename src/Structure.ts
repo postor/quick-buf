@@ -1,4 +1,4 @@
-import { BasicType, MixType } from "./util"
+import { BasicType, MixType, TypeValues, ValueTypes } from "./util"
 
 type ParseConfig = ObjLike | ArrLike | BasicType
 interface ObjLike {
@@ -7,6 +7,8 @@ interface ObjLike {
 interface ArrLike {
   [key: number]: ParseConfig
 }
+
+export type StructureMetaItem = { name: string, type: number, parent: number }
 
 export class Structure {
   type: MixType
@@ -54,6 +56,38 @@ export class Structure {
     }
     return new Structure(data as BasicType, name)
   }
+
+
+  static unparse(struct: Structure): ParseConfig {
+    switch (struct.type) {
+      case 'array': return [Structure.unparse(struct.contents as Structure)]
+      case 'object': {
+        let obj: ObjLike = {}
+        for (let c of struct.contents as Structure[]) {
+          obj[c.name] = Structure.unparse(c)
+        }
+        return obj
+      }
+      default: return struct.type
+    }
+  }
+
+  static restruct(data: StructureMetaItem[]) {
+    let structs = data.map(({ name, type }) =>
+      new Structure(ValueTypes[type], name, type == TypeValues.object ? [] : undefined))
+    for (let i = 0; i < data.length; i++) {
+      let { parent } = data[i]
+      if (parent == i) continue
+      let s = structs[parent]
+      if (s.type == 'object') {
+        (s.contents as Structure[]).push(structs[i])
+      } else {
+        s.contents = structs[i]
+      }
+    }
+    return structs[0]
+  }
 }
 
 export const StructureMeta = Structure.parse([{ name: 'string', type: 'uint', parent: 'uint' }])
+
