@@ -1,7 +1,7 @@
 import { bits2bytes } from "./bits"
 import { ParseConfig, Structure, StructureMeta } from "./Structure"
 import { concatBuf, TypeClasses, TypeSizes, TypeValues } from "./util"
-import { writeUint } from "./VUint"
+import { writeUint as writeUint1 } from "./VUint"
 
 const UTF8 = new TextEncoder()
 // export const EncodeUints: number[] = []
@@ -12,7 +12,9 @@ const UTF8 = new TextEncoder()
  * @param structure  
  */
 export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuffer {
-  let arrs: any[][] = new Array(13).fill(0).map(_ => [])
+  let arrs: any[][] = new Array(13).fill(0).map(_ => []),
+    stringIndex = 0,
+    stringDic: { [key: string]: number } = {}
 
   let struct = structure
     ? structure instanceof Structure
@@ -34,7 +36,7 @@ export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuf
   ].concat(arrs[TypeValues.UInt32] as []) // [bitmask,...typecounts,...uint32s]
   // let decoder = new TextDecoder()
   // console.log(arrs[TypeValues.string].map(x=>decoder.decode(x)))
-
+  // console.log(stringDic, arrs[TypeValues.boolean])
   return arrs2buffer(arrs)
 
   function arrs2buffer(arrs: any): ArrayBuffer {
@@ -67,7 +69,7 @@ export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuf
       case 'float':
         return arrs[TypeValues.Float32].push(data)
       case 'uint':
-        return writeUint(data, arrs[TypeValues.uint])
+        return writeUint(data)
       default: {
         if (undefined === arrs[TypeValues[struct.type]]) {
           // console.log(logs)
@@ -81,7 +83,7 @@ export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuf
     }
 
     function writeArray(arr: any[], itemStruct: Structure, length = 0) {
-      if (length == 0) writeUint(arr.length, arrs[TypeValues.uint])
+      if (length == 0) writeUint(arr.length)
       for (let i = 0; i < (length == 0 ? arr.length : length); i++) {
         writeData(arr[i], itemStruct)
       }
@@ -98,11 +100,23 @@ export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuf
       // console.log({ writeString: str })
       if (typeof str != 'string') str = '' + str
 
-      if (!str.length) return writeUint(0, arrs[TypeValues.uint])
+      arrs[TypeValues.boolean].push(!!stringDic[str])
+      if (!str.length) return writeUint(0)
+
+      if (stringDic[str]) {
+        return writeUint(stringDic[str])
+      }
+
       let bytes = UTF8.encode(str)
-      writeUint(bytes.length, arrs[TypeValues.uint])
+      writeUint(bytes.length)
       arrs[TypeValues.string].push(bytes)
+      stringDic[str] = stringIndex
+      stringIndex++
     }
+  }
+
+  function writeUint(n = 0) {
+    writeUint1(n, arrs[TypeValues.uint])
   }
 
   function writeStructure(struct: Structure) {

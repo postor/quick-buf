@@ -11,7 +11,7 @@ const UTF8 = new TextDecoder()
 
 export function decode(buf: ArrayBuffer, structure?: Structure | ParseConfig): any {
   // bitmask, type counts, string total bytes
-  let cur = 0
+  let cur = 0, stringArr: string[] = []
   let ui32 = () => {
     let rtn = buffReader<number>(buf, Uint32Array, cur, 1)()
     cur += 4
@@ -104,19 +104,20 @@ export function decode(buf: ArrayBuffer, structure?: Structure | ParseConfig): a
       return tmp
     }
   }
-
   function getStringReader() {
     let strOffset = cur
     cur += stringTotalSize
     return () => {
+      let exists = arrs[TypeValues.boolean]()
+      if (exists) {
+        return stringArr[arrs[TypeValues.uint]() as number]
+      }
+
       let length = arrs[TypeValues.uint]() as number
       if (!length) return ''
-      if (buf.byteLength < length + strOffset) {
-        throw `out of range`
-      }
-      let rtn = UTF8.decode(new Uint8Array(buf, strOffset, length))
 
-      // console.log(`read string`, { length, rtn })
+      let rtn = UTF8.decode(new Uint8Array(buf, strOffset, length))
+      stringArr.push(rtn)
       strOffset += length
       return rtn
     }

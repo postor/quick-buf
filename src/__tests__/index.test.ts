@@ -10,20 +10,24 @@ it('auto detect', () => {
     age: 12,
     friends: [
       {
-        name: 'd',
+        name: 'abc',
         age: 11
       }, {
-        name: 'e',
+        name: 'eeee',
         age: 12
       }, {
-        name: 'f',
+        name: 'ffff',
         age: 13
+      }, {
+        name: 'name',
+        age: 14
       }
     ]
   }
   let buf = encode(val)
   expect(buf.byteLength).not.toBe(0)
   let decoded = decode(buf)
+  // console.log(decoded)
   expect(deepEqual(decoded, val)).toBe(true)
 })
 

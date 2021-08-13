@@ -5,6 +5,7 @@ const { encode, decode } = require('quick-buf')
 const compression = require('compression')
 
 const data = JSON.parse(readFileSync(join(__dirname, 'large-file.json'), 'utf-8'))
+const data2 = JSON.parse(readFileSync(join(__dirname, 'large-file2.json'), 'utf-8'))
 
 const app = express()
 const port = 3000
@@ -13,28 +14,129 @@ app.use(compression({ filter: () => true }))
 
 app.use('/', express.static(join(__dirname, 'public')))
 
-app.get('/api/json', (req, res) => {
+app.get('/api/json1', (req, res) => {
   res.json(data)
 })
 
-app.get('/api/buf1', (req, res) => {
+app.get('/api/buf1-auto', (req, res) => {
   res.setHeader('Content-Type', 'application/x-quickbuf')
   let arraybuf = encode(data)
   res.end(Buffer.from(arraybuf))
 })
 
 
-app.get('/api/buf2', (req, res) => {
+app.get('/api/buf1-structure', (req, res) => {
   res.setHeader('Content-Type', 'application/x-quickbuf')
-  let arraybuf = encode(data, getStructure())
+  let arraybuf = encode(data, getStructure1())
   res.end(Buffer.from(arraybuf))
 })
+
+app.get('/api/json2', (req, res) => {
+  res.json(data2)
+})
+
+app.get('/api/buf2-auto', (req, res) => {
+  res.setHeader('Content-Type', 'application/x-quickbuf')
+  let arraybuf = encode(data2)
+  res.end(Buffer.from(arraybuf))
+})
+
+
+app.get('/api/buf2-structure', (req, res) => {
+  res.setHeader('Content-Type', 'application/x-quickbuf')
+  let arraybuf = encode(data2, getStructure2())
+  res.end(Buffer.from(arraybuf))
+})
+
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
 
-function getStructure() {
+function getStructure2() {
+  return {
+    "type": "string",
+    "version": "string",
+    "metadata": {
+      "geographicalExtent": [
+        "float",
+        6
+      ]
+    },
+    "CityObjects": [
+      {
+        "type": "string",
+        "geometry": [
+          {
+            "type": "string",
+            "boundaries": [
+              [
+                [
+                  "float",
+                  3
+                ],
+                1
+              ]
+            ],
+            "semantics": {
+              "values": [
+                "uint"
+              ],
+              "surfaces": [
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "texture": {
+              "Rhino   texturing": {
+                "values": [
+                  [
+                    [
+                      "uint",
+                      4
+                    ],
+                    1
+                  ]
+                ]
+              }
+            },
+            "lod": "uint"
+          }
+        ],
+        "id": "string"
+      }
+    ],
+    "vertices": [
+      [
+        "float",
+        3
+      ]
+    ],
+    "appearance": {
+      "textures": [
+        {
+          "type": "string",
+          "image": "string",
+          "wrapMode": "string",
+          "textureType": "string",
+          "borderColor": [
+            "uint",
+            4
+          ]
+        }
+      ],
+      "vertices-texture": [
+        [
+          "float",
+          2
+        ]
+      ]
+    }
+  }
+}
+
+function getStructure1() {
   return {
     "source": "string",
     "feeds": [

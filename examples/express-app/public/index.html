@@ -10,17 +10,105 @@
 
 <body>
   <button>click me and check console network tab!</button>
-  <script src="/quick-buf.umd.prod.js"></script>
+  <script src="/quick-buf.umd.js"></script>
   <script>
-    document.querySelector('button').addEventListener('click', () => {
-      fetch('/api/json').then(res => res.json()).then(data => console.log('json', data))
-      fetch('/api/buf1').then(res => res.arrayBuffer()).then(buf =>
-        console.log('buf1', QuickBuf.decode(buf)))
-      // fetch('/api/buf2').then(res => res.arrayBuffer()).then(buf =>
-      //   console.log('buf2', QuickBuf.decode(buf, getStructure())))
+    document.querySelector('button').addEventListener('click', async () => {
+      await fetch('/api/json1').then(res => res.json()).then(data => console.log('json1', data))
+      await fetch('/api/buf1-auto').then(res => res.arrayBuffer()).then(buf =>
+        console.log('buf1-auto', QuickBuf.decode(buf)))
+      await fetch('/api/buf1-structure').then(res => res.arrayBuffer()).then(buf =>
+        console.log('buf1-structure', QuickBuf.decode(buf, getStructure1())))
+      await fetch('/api/json2').then(res => res.json()).then(data => console.log('json2', data))
+      await fetch('/api/buf2-auto').then(res => res.arrayBuffer()).then(buf =>
+        console.log('buf2-auto', QuickBuf.decode(buf)))
+      await fetch('/api/buf2-structure').then(res => res.arrayBuffer()).then(buf =>
+        console.log('buf2-structure', QuickBuf.decode(buf, getStructure2())))
     })
 
-    function getStructure() {
+    function getStructure2() {
+      return {
+        "type": "string",
+        "version": "string",
+        "metadata": {
+          "geographicalExtent": [
+            "float",
+            6
+          ]
+        },
+        "CityObjects": [
+          {
+            "type": "string",
+            "geometry": [
+              {
+                "type": "string",
+                "boundaries": [
+                  [
+                    [
+                      "float",
+                      3
+                    ],
+                    1
+                  ]
+                ],
+                "semantics": {
+                  "values": [
+                    "uint"
+                  ],
+                  "surfaces": [
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "texture": {
+                  "Rhino   texturing": {
+                    "values": [
+                      [
+                        [
+                          "uint",
+                          4
+                        ],
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "lod": "uint"
+              }
+            ],
+            "id": "string"
+          }
+        ],
+        "vertices": [
+          [
+            "float",
+            3
+          ]
+        ],
+        "appearance": {
+          "textures": [
+            {
+              "type": "string",
+              "image": "string",
+              "wrapMode": "string",
+              "textureType": "string",
+              "borderColor": [
+                "uint",
+                4
+              ]
+            }
+          ],
+          "vertices-texture": [
+            [
+              "float",
+              2
+            ]
+          ]
+        }
+      }
+    }
+
+    function getStructure1() {
       return {
         "source": "string",
         "feeds": [
@@ -43,7 +131,7 @@
             "gps_alt": "uint",
             "date": "string",
             "s_d2": "uint",
-            "s_h0": "uint",
+            "s_h0": "number",
             "c_d0": "number",
             "device_id": "string"
           }
