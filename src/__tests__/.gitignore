@@ -1,5 +1,3 @@
-buf.data
-decoded.json
-buf-without-structure.data
-decoded-with-structure.json
+*.data
+*decoded.json
 *.gz

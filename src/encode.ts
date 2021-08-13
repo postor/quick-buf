@@ -19,7 +19,7 @@ export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuf
       ? structure
       : Structure.parse(structure)
     : Structure.detect(data) as Structure
-  console.log({ structure, struct })
+  // console.log({ structure, struct })
   if (!structure) writeStructure(struct)
   // console.log(arrs[TypeValues.string])
   writeData(data, struct)
@@ -80,9 +80,9 @@ export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuf
       }
     }
 
-    function writeArray(arr: any[], itemStruct: Structure, length = -1) {
-      if (length == -1) writeUint(arr.length, arrs[TypeValues.uint])
-      for (let i = 0; i < (length == -1 ? arr.length : length); i++) {
+    function writeArray(arr: any[], itemStruct: Structure, length = 0) {
+      if (length == 0) writeUint(arr.length, arrs[TypeValues.uint])
+      for (let i = 0; i < (length == 0 ? arr.length : length); i++) {
         writeData(arr[i], itemStruct)
       }
     }

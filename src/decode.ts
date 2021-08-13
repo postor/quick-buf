@@ -45,12 +45,12 @@ export function decode(buf: ArrayBuffer, structure?: Structure | ParseConfig): a
       ? structure
       : Structure.parse(structure)
     : readStructure() as Structure
-  console.log({ struct, structure })
+  // console.log({ struct, structure })
   return readData(struct)
 
   function readStructure(): Structure {
     let data = readData(StructureMeta) as StructureMetaItem[]
-    console.log({ structure: data })
+    // console.log({ structure: data })
     return Structure.restruct(data)
   }
 

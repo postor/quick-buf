@@ -57,7 +57,7 @@ function getStructure() {
         "gps_alt": "uint",
         "date": "string",
         "s_d2": "uint",
-        "s_h0": "uint",
+        "s_h0": "number",
         "c_d0": "number",
         "device_id": "string"
       }
