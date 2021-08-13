@@ -1,1 +1,80 @@
-{"type":"string","version":"string","metadata":{"geographicalExtent":["number"]},"CityObjects":[{"type":"string","geometry":[{"type":"string","boundaries":[[["number"]]],"semantics":{"values":["number"],"surfaces":[{"type":"string"}]},"texture":{"Rhino   texturing":{"values":[[["number"]]]}},"lod":"number"}],"id":"string"}],"vertices":[["number"]],"appearance":{"textures":[{"type":"string","image":"string","wrapMode":"string","textureType":"string","borderColor":["number"]}],"vertices-texture":[["number"]]}}
+{
+  "type": "string",
+  "version": "string",
+  "metadata": {
+    "geographicalExtent": [
+      "number",
+      6
+    ]
+  },
+  "CityObjects": [
+    {
+      "type": "string",
+      "geometry": [
+        {
+          "type": "string",
+          "boundaries": [
+            [
+              [
+                "number",
+                3
+              ],
+              1
+            ]
+          ],
+          "semantics": {
+            "values": [
+              "uint"
+            ],
+            "surfaces": [
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "texture": {
+            "Rhino   texturing": {
+              "values": [
+                [
+                  [
+                    "uint",
+                    4
+                  ],
+                  1
+                ]
+              ]
+            }
+          },
+          "lod": "uint"
+        }
+      ],
+      "id": "string"
+    }
+  ],
+  "vertices": [
+    [
+      "number",
+      3
+    ]
+  ],
+  "appearance": {
+    "textures": [
+      {
+        "type": "string",
+        "image": "string",
+        "wrapMode": "string",
+        "textureType": "string",
+        "borderColor": [
+          "uint",
+          4
+        ]
+      }
+    ],
+    "vertices-texture": [
+      [
+        "number",
+        2
+      ]
+    ]
+  }
+}

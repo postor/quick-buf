@@ -6,6 +6,8 @@ import { VUintReader } from "./VUint"
 
 const UTF8 = new TextDecoder()
 // let DecodeUints: number[] = []
+// let _fixedArrayCount=0
+// export const fixedArrayCount=()=>_fixedArrayCount
 
 export function decode(buf: ArrayBuffer, structure?: Structure | ParseConfig): any {
   // bitmask, type counts, string total bytes
@@ -78,6 +80,7 @@ export function decode(buf: ArrayBuffer, structure?: Structure | ParseConfig): a
     }
 
     function readArray(struct: Structure, length = 0): any {
+      // if(length) _fixedArrayCount++
       let arr = [], leng = length == 0 ? arrs[TypeValues.uint]() as number : length
 
       // console.log(`arr.lenght=${length}`)
