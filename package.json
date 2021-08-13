@@ -2,9 +2,10 @@
   "name": "quick-buf",
   "version": "1.0.0",
   "description": "alternative for proto buf, easier to use, similar efficiency",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "build": "tsc && webpack --mode=production"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,8 @@
     "fs-extra": "^10.0.0",
     "jest": "^27.0.6",
     "ts-jest": "^27.0.4",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "webpack": "^5.50.0",
+    "webpack-cli": "^4.7.2"
   }
 }

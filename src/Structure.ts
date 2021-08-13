@@ -1,6 +1,6 @@
 import { BasicType, MixType, TypeValues, ValueTypes } from "./util"
 
-type ParseConfig = ObjLike | ArrLike | BasicType
+export type ParseConfig = ObjLike | ArrLike | BasicType | [ParseConfig, number]
 interface ObjLike {
   [key: string]: ParseConfig
 }
@@ -8,17 +8,19 @@ interface ArrLike {
   [key: number]: ParseConfig
 }
 
-export type StructureMetaItem = { name: string, type: number, parent: number }
+export type StructureMetaItem = { name: string, type: number, parent: number, arrlength: number }
 
 export class Structure {
   type: MixType
   name: string
+  arrLength: number
   contents?: Structure | Structure[]
 
-  constructor(type: MixType, name: string, contents?: Structure | Structure[]) {
+  constructor(type: MixType, name: string, contents?: Structure | Structure[], arrLength = 0) {
     this.type = type
     this.name = name
     this.contents = contents
+    this.arrLength = arrLength
   }
 
   static detect(data: any, name = ''): Structure | undefined {
@@ -37,12 +39,11 @@ export class Structure {
     }
     if (type == 'function' || type == 'symbol') return undefined
     return new Structure(type, name)
-
   }
 
   static parse(data: ParseConfig, name = ''): Structure {
     if (Array.isArray(data)) {
-      return new Structure('array', name, Structure.parse(data[0]))
+      return new Structure('array', name, Structure.parse(data[0]), data[1])
     }
     let type = typeof data
     if (type == 'object') {
@@ -58,23 +59,28 @@ export class Structure {
   }
 
 
-  static unparse(struct: Structure): ParseConfig {
-    switch (struct.type) {
-      case 'array': return [Structure.unparse(struct.contents as Structure)]
+  unparse(): ParseConfig {
+    switch (this.type) {
+      case 'array': {
+        let c = this.contents as Structure
+        return this.arrLength == 0
+          ? [c.unparse()]
+          : [c.unparse(), this.arrLength]
+      }
       case 'object': {
         let obj: ObjLike = {}
-        for (let c of struct.contents as Structure[]) {
-          obj[c.name] = Structure.unparse(c)
+        for (let c of this.contents as Structure[]) {
+          obj[c.name] = c.unparse()
         }
         return obj
       }
-      default: return struct.type
+      default: return this.type
     }
   }
 
   static restruct(data: StructureMetaItem[]) {
-    let structs = data.map(({ name, type }) =>
-      new Structure(ValueTypes[type], name, type == TypeValues.object ? [] : undefined))
+    let structs = data.map(({ name, type, arrlength }) =>
+      new Structure(ValueTypes[type], name, type == TypeValues.object ? [] : undefined, arrlength))
     for (let i = 0; i < data.length; i++) {
       let { parent } = data[i]
       if (parent == i) continue
@@ -89,5 +95,5 @@ export class Structure {
   }
 }
 
-export const StructureMeta = Structure.parse([{ name: 'string', type: 'uint', parent: 'uint' }])
+export const StructureMeta = Structure.parse([{ name: 'string', type: 'uint', parent: 'uint', arrLength: 'uint' }])
 

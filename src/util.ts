@@ -1,12 +1,12 @@
 export type BasicType = 'boolean' | 'number' | 'string' |
   'Double' | 'Float' | 'bigint' | 'undefined' | 'uint' |
   'BigInt64' | 'Int8' | 'Int16' | 'Int32' | 'Float32' |
-  'BigUint64' | 'UInt8' | 'UInt16' | 'UInt32' | 'Float64' | 'float'
+  'BigUint64' | 'UInt8' | 'UInt16' | 'UInt32' | 'Float64' | 'float' | string
 
 export type MixType = BasicType | 'array' | 'object'
 
 //'uint32' 'boolean' 'int32' 'uint16' 'int16' 'uint8' 'int8' 'ubigint64' 'bigint64' 'float32' 'float64'  'string'
-export const TypeValues = {
+export const TypeValues: { [key: string]: number } = {
   UInt32: 0,
   Int32: 1,
   UInt16: 2,
@@ -68,7 +68,7 @@ export function toBuf(type: MixType, arr: any) {
   if (type == 'boolean') {
     return boolsToBuf(arr)
   }
-  if (TypeValues[type] > 10) throw `not supported type: ${type}`
+  if (TypeValues[type] === undefined || TypeValues[type] > 10) throw `not supported type: ${type}`
 
   return arr.buffer
 }

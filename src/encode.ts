@@ -1,5 +1,5 @@
 import { bits2bytes } from "./bits"
-import { Structure, StructureMeta } from "./Structure"
+import { ParseConfig, Structure, StructureMeta } from "./Structure"
 import { concatBuf, TypeClasses, TypeSizes, TypeValues } from "./util"
 import { writeUint } from "./VUint"
 
@@ -11,10 +11,15 @@ const UTF8 = new TextEncoder()
  * @param data 
  * @param structure  
  */
-export function encode(data: any, structure?: Structure): ArrayBuffer {
+export function encode(data: any, structure?: Structure | ParseConfig): ArrayBuffer {
   let arrs: any[][] = new Array(13).fill(0).map(_ => [])
 
-  let struct = (structure || Structure.detect(data)) as Structure
+  let struct = structure
+    ? structure instanceof Structure
+      ? structure
+      : Structure.parse(structure)
+    : Structure.detect(data) as Structure
+  console.log({ structure, struct })
   if (!structure) writeStructure(struct)
   // console.log(arrs[TypeValues.string])
   writeData(data, struct)
@@ -52,7 +57,7 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
 
   function writeData(data: any, struct: Structure) {
     switch (struct.type) {
-      case 'array': return writeArray(data, struct.contents as Structure)
+      case 'array': return writeArray(data, struct.contents as Structure, struct.arrLength)
       case 'object': return writeObj(data, struct.contents as Structure[])
       case 'bigint':
       case 'string': return writeString(data)
@@ -75,11 +80,10 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
       }
     }
 
-    function writeArray(arr: any[], itemStruct: Structure) {
-      writeUint(arr.length, arrs[TypeValues.uint])
-      // console.log(`arr.lenght=${arr.length}`)
-      for (let item of arr) {
-        writeData(item, itemStruct)
+    function writeArray(arr: any[], itemStruct: Structure, length = -1) {
+      if (length == -1) writeUint(arr.length, arrs[TypeValues.uint])
+      for (let i = 0; i < (length == -1 ? arr.length : length); i++) {
+        writeData(arr[i], itemStruct)
       }
     }
 
@@ -102,14 +106,12 @@ export function encode(data: any, structure?: Structure): ArrayBuffer {
   }
 
   function writeStructure(struct: Structure) {
-    // console.log(`writeStructure`)
-    // throw 'writeStructure'
     let arr = flat(struct)
-    // console.log(arr,arr.length)
     writeData(arr.map(([s, i]) => ({
       name: s.name,
       type: TypeValues[s.type],
-      parent: i
+      parent: i,
+      arrLength: s.arrLength
     })), StructureMeta)
 
     function flat(struct: Structure) {

@@ -12,15 +12,15 @@
       "SiteName": "string",
       "timestamp": "string",
       "app": "string",
-      "gps_fix": "number",
+      "gps_fix": "uint",
       "gps_lon": "number",
       "SiteAddr": "string",
       "time": "string",
-      "s_d0": "number",
-      "gps_alt": "number",
+      "s_d0": "uint",
+      "gps_alt": "uint",
       "date": "string",
-      "s_d2": "number",
-      "s_h0": "number",
+      "s_d2": "uint",
+      "s_h0": "uint",
       "c_d0": "number",
       "device_id": "string"
     }
@@ -46,5 +46,5 @@
     "c_d0": "string",
     "c_d0_method": "string"
   },
-  "num_of_records": "number"
+  "num_of_records": "uint"
 }

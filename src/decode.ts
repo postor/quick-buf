@@ -1,13 +1,13 @@
 import { BitReader } from "./bits"
 // import { EncodeUints } from "./encode"
-import { Structure, StructureMeta, StructureMetaItem } from "./Structure"
+import { ParseConfig, Structure, StructureMeta, StructureMetaItem } from "./Structure"
 import { TypeClasses, TypeSizes, TypeValues, ValueTypes } from "./util"
 import { VUintReader } from "./VUint"
 
 const UTF8 = new TextDecoder()
 // let DecodeUints: number[] = []
 
-export function decode(buf: ArrayBuffer, structure?: Structure): any {
+export function decode(buf: ArrayBuffer, structure?: Structure | ParseConfig): any {
   // bitmask, type counts, string total bytes
   let cur = 0
   let ui32 = () => {
@@ -24,7 +24,7 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
   }
   let booleanSize = (bitmask & (1 << 11)) && ui32(), stringTotalSize = (bitmask & (1 << 12)) && ui32()
   // console.log(arrsCounts.concat([booleanSize, stringTotalSize]), bitmask.toString(2))
-
+  // console.log(arrsCounts)
   // init readers
   let arrs = arrsCounts.map((x, i) => {
     if (!x) return () => 0
@@ -40,18 +40,23 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
   arrs[TypeValues.uint] = getUintReader()
 
   // 
-  const struct = (structure || readStructure()) as Structure
+  const struct = structure
+    ? structure instanceof Structure
+      ? structure
+      : Structure.parse(structure)
+    : readStructure() as Structure
+  console.log({ struct, structure })
   return readData(struct)
 
   function readStructure(): Structure {
     let data = readData(StructureMeta) as StructureMetaItem[]
-    // console.log(data)
+    console.log({ structure: data })
     return Structure.restruct(data)
   }
 
   function readData(struct: Structure) {
     switch (struct.type) {
-      case 'array': return readArray(struct.contents as Structure)
+      case 'array': return readArray(struct.contents as Structure, struct.arrLength)
       case 'object': return readObj(struct.contents as Structure[])
       case 'bigint':
       case 'string': return arrs[TypeValues.string]()
@@ -72,11 +77,11 @@ export function decode(buf: ArrayBuffer, structure?: Structure): any {
       return obj
     }
 
-    function readArray(struct: Structure): any {
-      let arr = [], length = arrs[TypeValues.uint]() as number
+    function readArray(struct: Structure, length = 0): any {
+      let arr = [], leng = length == 0 ? arrs[TypeValues.uint]() as number : length
 
       // console.log(`arr.lenght=${length}`)
-      for (let i = 0; i < length; i++) {
+      for (let i = 0; i < leng; i++) {
         arr.push(readData(struct))
       }
       return arr

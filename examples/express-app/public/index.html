@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <button>click me and check console network tab!</button>
+  <script src="/quick-buf.umd.prod.js"></script>
+  <script>
+    document.querySelector('button').addEventListener('click', () => {
+      fetch('/api/json').then(res => res.json()).then(data => console.log('json', data))
+      fetch('/api/buf1').then(res => res.arrayBuffer()).then(buf =>
+        console.log('buf1', QuickBuf.decode(buf)))
+      // fetch('/api/buf2').then(res => res.arrayBuffer()).then(buf =>
+      //   console.log('buf2', QuickBuf.decode(buf, getStructure())))
+    })
+
+    function getStructure() {
+      return {
+        "source": "string",
+        "feeds": [
+          {
+            "c_d0_method": "string",
+            "gps_lat": "number",
+            "gps_num": "uint",
+            "s_d1": "uint",
+            "name": "string",
+            "s_t0": "number",
+            "area": "string",
+            "SiteName": "string",
+            "timestamp": "string",
+            "app": "string",
+            "gps_fix": "uint",
+            "gps_lon": "number",
+            "SiteAddr": "string",
+            "time": "string",
+            "s_d0": "uint",
+            "gps_alt": "uint",
+            "date": "string",
+            "s_d2": "uint",
+            "s_h0": "uint",
+            "c_d0": "number",
+            "device_id": "string"
+          }
+        ],
+        "version": "string",
+        "descriptions": {
+          "gps_lat": "string",
+          "gps_num": "string",
+          "s_g8": "string",
+          "s_b0": "string",
+          "FAKE_GPS": "string",
+          "s_t0": "string",
+          "gps_alt": "string",
+          "lon": "string",
+          "gps_lon": "string",
+          "s_d2": "string",
+          "s_g8e": "string",
+          "s_d0": "string",
+          "s_d1": "string",
+          "lat": "string",
+          "s_h0": "string",
+          "s_gg": "string",
+          "c_d0": "string",
+          "c_d0_method": "string"
+        },
+        "num_of_records": "uint"
+      }
+    }
+  </script>
+</body>
+
+</html>
